@@ -20,11 +20,6 @@ $hInput = getallheaders();
 $xSign = $hInput["X-Sign"];
 //$s1 = base64_decode($xSign);
 $s2 = base64_decode($xSign, true);
-$log["headers"] = $hInput;
-$log["s1"] = $s1;
-$log["s2"] = $s2;
-$log["input"] = $input;
-send_request("https://webhook.site/monobank", $hInput, "POST", $log);
 include ('config.php');
 
 // Functions
@@ -54,7 +49,6 @@ if ($input["status"] != "success") {
     $result["error"]["message"]["status"] = "wait is success";
 }
 if ($result["state"] === false) {
-    send_request($logUrl, [], "POST", $log);
     echo json_encode($result);
     exit;
 } else {
@@ -74,11 +68,6 @@ $trigger["name"] = $_GET["action"];
 unset($headers);
 $headers[] = "Authorization: Bearer ".$ss_token;
 $result["SmartSender"] = json_decode(send_request("https://api.smartsender.com/v1/contacts/".$userId."/fire", $headers, "POST", $trigger), true);
-
-$log["time"] = date("d-m-Y H:m:s");
-$log["input"] = $input;
-$log["result"] = $result;
-send_request($logUrl, [], "POST", $log);
 
 echo json_encode($result);
 
