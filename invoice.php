@@ -8,7 +8,6 @@ ini_set('max_execution_time', '1700');
 set_time_limit(1700);
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
-header('Access-Control-Allow-Headers: application/json');
 header('Content-Type: application/json; charset=utf-8');
 
 http_response_code(200);
