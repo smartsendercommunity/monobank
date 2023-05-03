@@ -56,6 +56,11 @@ if ($result["state"] === false) {
 // Формирование данных
 $amount = str_replace(array(",", " "), array(".", ""), $input["amount"]);
 $sendData["amount"] = $amount * 100;
+if ($input["currency"] == "USD") {
+    $sendData["ccy"] = 840;
+} else if ($input["currency"] == "EUR") {
+    $sendData["ccy"] = 978;
+}
 $sendData["merchantPaymInfo"]["reference"] = $input["userId"]."-".mt_rand(1000000, 9999999);
 if ($input["description"] != NULL) {
     $sendData["merchantPaymInfo"]["destination"] = $input["description"];
