@@ -82,7 +82,7 @@ $pages = $cursor["cursor"]["pages"];
 for ($i = 1; $i <= $pages; $i++) {
     $checkout = json_decode(send_request("https://api.smartsender.com/v1/contacts/".$input["userId"]."/checkout?page=".$i."&limitation=20", $headers), true);
     $essences = $checkout["collection"];
-    $send_data["total"]["currency"] = $essences[0]["cash"]["currency"];
+    $currency = $essences[0]["cash"]["currency"];
     foreach ($essences as $product) {
         $items["name"] = $product["product"]["name"]." ".$product["name"];
         $items["qty"] = $product["pivot"]["quantity"];
@@ -100,6 +100,11 @@ for ($i = 1; $i <= $pages; $i++) {
     }
 }
 $sendData["amount"] = array_sum($sum);
+if ($currency == "USD") {
+    $sendData["ccy"] = 840;
+} else if ($currency = "EUR") {
+    $sendDara["ccy"] = 978;
+}
 unset($headers);
 $headers[] = "X-Token: ".$mono_token;
 
