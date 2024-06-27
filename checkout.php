@@ -87,6 +87,7 @@ for ($i = 1; $i <= $pages; $i++) {
         $items["name"] = $product["product"]["name"]." ".$product["name"];
         $items["qty"] = $product["pivot"]["quantity"];
         $items["sum"] = $product["cash"]["amount"] * $product["pivot"]["quantity"] * 100;
+        $items["code"] = $product["id"];
         $sum[] = $items["sum"];
         if (file_exists("media/".$product["product"]["id"]."/".$product["id"].".jpg")) {
             $items["icon"] = $url."/media/".$product["product"]["id"]."/".$product["id"].".jpg";
