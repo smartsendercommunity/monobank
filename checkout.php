@@ -84,18 +84,29 @@ for ($i = 1; $i <= $pages; $i++) {
     $essences = $checkout["collection"];
     $currency = $essences[0]["cash"]["currency"];
     foreach ($essences as $product) {
-        $items["name"] = $product["product"]["name"]." ".$product["name"];
+        $items["name"] = $product["product"]["name"] . " " . $product["name"];
         $items["qty"] = $product["pivot"]["quantity"];
-        $items["sum"] = $product["cash"]["amount"] * $product["pivot"]["quantity"] * 100;
-        $items["code"] = $product["id"];
-        $sum[] = $items["sum"];
-        if (file_exists("media/".$product["product"]["id"]."/".$product["id"].".jpg")) {
-            $items["icon"] = $url."/media/".$product["product"]["id"]."/".$product["id"].".jpg";
-        } else if (file_exists("media/".$product["product"]["id"].".jpg")) {
-            $items["icon"] = $url."/media/".$product["product"]["id"].".jpg";
+        $items["sum"] = $product["cash"]["amount"] * 100;
+        $sum[] = $product["cash"]["amount"] * $product["pivot"]["quantity"] * 100;
+        if (file_exists("media/" . $product["product"]["id"] . "/" . $product["id"] . ".jpg")) {
+            $items["icon"] = $url . "/media/" . $product["product"]["id"] . "/" . $product["id"] . ".jpg";
+        } else if (file_exists("media/" . $product["product"]["id"] . ".jpg")) {
+            $items["icon"] = $url . "/media/" . $product["product"]["id"] . ".jpg";
         } else if (file_exists("media/default.jpg")) {
-            $items["icon"] = $url."/media/default.jpg";
+            $items["icon"] = $url . "/media/default.jpg";
         }
+        // Податкова ставка (Тільки для "Вчасно.Каса")
+        // $items["tax"] = [2];
+        // Використовуйте одне з наступних значень:
+        // 1 - ПДВ 20%
+        // 2 - Без ПДВ
+        // 3 - ПДВ 20% + акциз 5%
+        // 4 - ПДВ 7%
+        // 5 - ПДВ 0%
+        // 6 - Без ПДВ + акциз 5%
+        // 7 - Не є об'єктом ПДВ
+        // 8 - ПДВ 20% + ПФ 7.5%
+        // 9 - ПДВ 14%
         $sendData["merchantPaymInfo"]["basketOrder"][] = $items;
         unset($items);
     }
