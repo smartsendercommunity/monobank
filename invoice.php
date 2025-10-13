@@ -15,24 +15,25 @@ http_response_code(200);
 //--------------
 
 $input = json_decode(file_get_contents('php://input'), true);
-include ('config.php');
+include('config.php');
 
 // Functions
 {
-function send_request($url, $header, $type = 'GET', $param = []) {
-    $descriptor = curl_init($url);
-    if ($type != "GET") {
-        curl_setopt($descriptor, CURLOPT_POSTFIELDS, json_encode($param));
-        $header[] = 'Content-Type: application/json';
+    function send_request($url, $header, $type = 'GET', $param = [])
+    {
+        $descriptor = curl_init($url);
+        if ($type != "GET") {
+            curl_setopt($descriptor, CURLOPT_POSTFIELDS, json_encode($param));
+            $header[] = 'Content-Type: application/json';
+        }
+        $header[] = 'User-Agent: Soft-M(https://api.soft-m.ml)';
+        curl_setopt($descriptor, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($descriptor, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($descriptor, CURLOPT_CUSTOMREQUEST, $type);
+        $itog = curl_exec($descriptor);
+        curl_close($descriptor);
+        return $itog;
     }
-    $header[] = 'User-Agent: Soft-M(https://api.soft-m.ml)';
-    curl_setopt($descriptor, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($descriptor, CURLOPT_HTTPHEADER, $header); 
-    curl_setopt($descriptor, CURLOPT_CUSTOMREQUEST, $type);
-    $itog = curl_exec($descriptor);
-    curl_close($descriptor);
-    return $itog;
-}
 }
 
 if ($input["userId"] == NULL) {
@@ -61,15 +62,25 @@ if ($input["currency"] == "USD") {
 } else if ($input["currency"] == "EUR") {
     $sendData["ccy"] = 978;
 }
-$sendData["merchantPaymInfo"]["reference"] = $input["userId"]."-".mt_rand(1000000, 9999999);
+$sendData["merchantPaymInfo"]["reference"] = $input["userId"] . "-" . mt_rand(1000000, 9999999);
 if ($input["description"] != NULL) {
     $sendData["merchantPaymInfo"]["destination"] = $input["description"];
 }
 if ($input["redirectUrl"] != NULL) {
     $sendData["redirectUrl"] = $input["redirectUrl"];
 }
-$sendData["webHookUrl"] = $url."/callback.php?action=".$input["action"];
-$headers[] = "X-Token: ".$mono_token;
+if ($input["productName"] != NULL) {
+    $sendData["merchantPaymInfo"]["basketOrder"] = [[
+        "name" => $input["productName"],
+        "qty" => 1,
+        "sum" => $sendData["amount"],
+        "code" => rand(100, 999999)
+    ]];
+}
+$sendData["webHookUrl"] = $url . "/callback.php?action=" . $input["action"];
+$headers[] = "X-Token: " . $mono_token;
+$headers[] = "X-Cms: Smart Sender";
+$headers[] = "X-Cms-Version: 0.2.git";
 
 $result["result"] = json_decode(send_request("https://api.monobank.ua/api/merchant/invoice/create", $headers, "POST", $sendData), true);
 $result["sendData"] = $sendData;
@@ -77,7 +88,3 @@ $result["headers"] = $headers;
 
 
 echo json_encode($result);
-
-
-
-
