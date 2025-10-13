@@ -9,3 +9,6 @@ $dir = dirname($_SERVER["PHP_SELF"]);
 $url = ((!empty($_SERVER["HTTPS"])) ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"] . $dir;
 $url = explode("?", $url);
 $url = $url[0];
+
+error_reporting(E_ERROR);
+ini_set('display_errors', 1);
