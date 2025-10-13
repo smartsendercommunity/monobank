@@ -15,24 +15,25 @@ http_response_code(200);
 //--------------
 
 $input = json_decode(file_get_contents('php://input'), true);
-include ('config.php');
+include('config.php');
 
 // Functions
 {
-function send_request($url, $header, $type = 'GET', $param = []) {
-    $descriptor = curl_init($url);
-    if ($type != "GET") {
-        curl_setopt($descriptor, CURLOPT_POSTFIELDS, json_encode($param));
-        $header[] = 'Content-Type: application/json';
+    function send_request($url, $header, $type = 'GET', $param = [])
+    {
+        $descriptor = curl_init($url);
+        if ($type != "GET") {
+            curl_setopt($descriptor, CURLOPT_POSTFIELDS, json_encode($param));
+            $header[] = 'Content-Type: application/json';
+        }
+        $header[] = 'User-Agent: Soft-M(https://api.soft-m.ml)';
+        curl_setopt($descriptor, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($descriptor, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($descriptor, CURLOPT_CUSTOMREQUEST, $type);
+        $itog = curl_exec($descriptor);
+        curl_close($descriptor);
+        return $itog;
     }
-    $header[] = 'User-Agent: Soft-M(https://api.soft-m.ml)';
-    curl_setopt($descriptor, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($descriptor, CURLOPT_HTTPHEADER, $header); 
-    curl_setopt($descriptor, CURLOPT_CUSTOMREQUEST, $type);
-    $itog = curl_exec($descriptor);
-    curl_close($descriptor);
-    return $itog;
-}
 }
 
 if ($input["userId"] == NULL) {
@@ -50,18 +51,18 @@ if ($result["state"] === false) {
 }
 
 // Формирование данных
-$sendData["merchantPaymInfo"]["reference"] = $input["userId"]."-".mt_rand(1000000, 9999999);
+$sendData["merchantPaymInfo"]["reference"] = $input["userId"] . "-" . mt_rand(1000000, 9999999);
 if ($input["description"] != NULL) {
     $sendData["merchantPaymInfo"]["destination"] = $input["description"];
 }
 if ($input["redirectUrl"] != NULL) {
     $sendData["redirectUrl"] = $input["redirectUrl"];
 }
-$sendData["webHookUrl"] = $url."/callback.php?action=".$input["action"];
+$sendData["webHookUrl"] = $url . "/callback.php?action=" . $input["action"];
 
 // Получение списка товаров в корзине пользователя
-$headers[] = "Authorization: Bearer ".$ss_token;
-$cursor = json_decode(send_request("https://api.smartsender.com/v1/contacts/".$input["userId"]."/checkout?page=1&limitation=20", $headers), true);
+$headers[] = "Authorization: Bearer " . $ss_token;
+$cursor = json_decode(send_request("https://api.smartsender.com/v1/contacts/" . $input["userId"] . "/checkout?page=1&limitation=20", $headers), true);
 if ($cursor["error"] != NULL && $cursor["error"] != 'undefined') {
     $result["status"] = "error";
     $result["message"][] = "Ошибка получения данных из SmartSender";
@@ -80,13 +81,14 @@ if ($cursor["error"] != NULL && $cursor["error"] != 'undefined') {
 }
 $pages = $cursor["cursor"]["pages"];
 for ($i = 1; $i <= $pages; $i++) {
-    $checkout = json_decode(send_request("https://api.smartsender.com/v1/contacts/".$input["userId"]."/checkout?page=".$i."&limitation=20", $headers), true);
+    $checkout = json_decode(send_request("https://api.smartsender.com/v1/contacts/" . $input["userId"] . "/checkout?page=" . $i . "&limitation=20", $headers), true);
     $essences = $checkout["collection"];
     $currency = $essences[0]["cash"]["currency"];
     foreach ($essences as $product) {
         $items["name"] = $product["product"]["name"] . " " . $product["name"];
         $items["qty"] = $product["pivot"]["quantity"];
         $items["sum"] = $product["cash"]["amount"] * 100;
+        $items["code"] = $product["id"];
         $sum[] = $product["cash"]["amount"] * $product["pivot"]["quantity"] * 100;
         if (file_exists("media/" . $product["product"]["id"] . "/" . $product["id"] . ".jpg")) {
             $items["icon"] = $url . "/media/" . $product["product"]["id"] . "/" . $product["id"] . ".jpg";
@@ -96,7 +98,7 @@ for ($i = 1; $i <= $pages; $i++) {
             $items["icon"] = $url . "/media/default.jpg";
         }
         // Податкова ставка (Тільки для "Вчасно.Каса")
-        // $items["tax"] = [2];
+        $items["tax"] = [2];
         // Використовуйте одне з наступних значень:
         // 1 - ПДВ 20%
         // 2 - Без ПДВ
@@ -118,7 +120,9 @@ if ($currency == "USD") {
     $sendDara["ccy"] = 978;
 }
 unset($headers);
-$headers[] = "X-Token: ".$mono_token;
+$headers[] = "X-Token: " . $mono_token;
+$headers[] = "X-Cms: Smart Sender";
+$headers[] = "X-Cms-Version: 0.2.git";
 
 $result["result"] = json_decode(send_request("https://api.monobank.ua/api/merchant/invoice/create", $headers, "POST", $sendData), true);
 $result["sendData"] = $sendData;
@@ -126,9 +130,3 @@ $result["headers"] = $headers;
 
 
 echo json_encode($result);
-
-
-
-
-
-
