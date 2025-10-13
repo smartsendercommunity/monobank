@@ -64,7 +64,10 @@ if (file_exists("pubkey")) {
     $check = openssl_verify($body, $signature, $publicKey, OPENSSL_ALGO_SHA256);
 }
 if ($check !== 1) {
-    $getPublicKey = json_decode(send_request("https://api.monobank.ua/api/merchant/pubkey", ["X-Token: " . $mono_token]), true);
+    $headers[] = "X-Token: " . $mono_token;
+    $headers[] = "X-Cms: Smart Sender";
+    $headers[] = "X-Cms-Version: 0.2.git";
+    $getPublicKey = json_decode(send_request("https://api.monobank.ua/api/merchant/pubkey", $headers), true);
     $log["getKey"] = $getPublicKey;
     if ($getPublicKey["key"] == NULL) {
         $result["state"] = false;
