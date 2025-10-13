@@ -60,7 +60,7 @@ $check = false;
 if (file_exists("pubkey")) {
     $pubkey = file_get_contents("pubkey");
     $signature = base64_decode(getallheaders()["X-Sign"]);
-    $publicKey = openssl_get_publickey(base64_decode($getPublicKey["key"]));
+    $publicKey = openssl_get_publickey(base64_decode($pubkey));
     $check = openssl_verify($body, $signature, $publicKey, OPENSSL_ALGO_SHA256);
 }
 if ($check !== 1) {
